@@ -34,7 +34,7 @@ class NetboxNetPool(object):
 
         self.prefixes = []
 
-        ## Get prefix from netbox based on Site and Role
+        # Get prefix from netbox based on Site and Role
         url = self.nb_addr + "/api/ipam/prefixes/"
 
         params = "role={role}&family={family}&status={status}".format(
@@ -56,7 +56,7 @@ class NetboxNetPool(object):
 
         self.data = resp["results"]
 
-        ### Save all prefixes
+        # Save all prefixes
         for p in self.data:
             prefix = PrefixesPool(p["prefix"])
 
@@ -64,8 +64,8 @@ class NetboxNetPool(object):
             # And reserve them in the local object
             # TODO need to remove te mask_lenght limitation
             url = self.nb_addr + "/api/ipam/prefixes/"
-            params = "parent={parent}&family={family}".format(
-                parent=p["prefix"], family=str(self.ip_family)
+            params = "within={within}&family={family}".format(
+                within=p["prefix"], family=str(self.ip_family)
             )
 
             if self.site_name:
@@ -79,7 +79,8 @@ class NetboxNetPool(object):
 
             for net in resp["results"]:
                 if net["description"]:
-                    prefix.reserve(net["prefix"], identifier=net["description"])
+                    prefix.reserve(
+                        net["prefix"], identifier=net["description"])
                 else:
                     prefix.reserve(net["prefix"])
 
@@ -100,22 +101,22 @@ class NetboxNetPool(object):
         Reserve a new subnet
         """
 
-        ### First check if this identifier already has a subnet assigned
-        ### in one of the existing pool
+        # First check if this identifier already has a subnet assigned
+        # in one of the existing pool
         for prefix in self.prefixes:
             if prefix.check_if_already_allocated(identifier=identifier):
                 return prefix.get(size=size, identifier=identifier)
 
-        ### If Nothing was found previously, assign a new subnet
+        # If Nothing was found previously, assign a new subnet
         for prefix in self.prefixes:
             new_prefix = prefix.get(size=size, identifier=identifier)
             if new_prefix:
                 return new_prefix
 
-        ### if nothing has been assigned and returned before, no more subnet are available
+        # if nothing has been assigned and returned before, no more subnet are available
         return False
 
-    ## This function propably should not live here
+    # This function propably should not live here
 
     # def get_net_ip(self, device=None, interface=None, ipid=1):
     #     """
